@@ -37,6 +37,47 @@ const signupController = async(req, res)=>{
 }
 
 
+//////logincontroller
+
+const loginController = async(req,res)=>{
+    try {
+        const {email, password} = req.body;
+
+        if(!email || !password){
+            return res.status(400).send('email and password are required')
+
+        }
+
+        const user = await User.findOne({email})
+         
+        if(!user){
+            return res.status(409).send('user is not registered')
+
+        }
+
+        const correctPassword = await bcrypt.compare(password, user.password);
+
+        if(!correctPassword){
+            return res.status(403).send('password is inccorect');
+
+        }
+
+        const accessToken = await generateAccessToken({
+            _id: user._id,
+            email:user.email
+        })
+        console.log(accessToken);
+        
+        return res.json({
+            accessToken:accessToken,
+        })
+    } catch (err) {
+        return res.status(500).send(err.message)
+        
+    }
+}
+
+
 // internal function
 
 const generateAccessToken = async(data)=>{
@@ -52,5 +93,6 @@ const generateAccessToken = async(data)=>{
 }
 
 module.exports = {
-    signupController
+    signupController,
+    loginController
 }
